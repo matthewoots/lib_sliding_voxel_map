@@ -19,14 +19,15 @@
 #include "sliding_map.h"
 
 sliding_map::slidingMap::slidingMap(float resolution, 
-    Eigen::Vector3d map_size, double time_sync_threshold, 
-    size_t queue_size) : 
-    _resolution(resolution), _map_size(map_size), 
-    _time_sync_threshold(time_sync_threshold),
+    Eigen::Vector3d map_size, size_t queue_size) : 
+    _resolution(resolution), _map_size(map_size),
     _queue_size(queue_size)
 {
     _voxel_map = pcl::VoxelGrid<pcl::PointXYZ>::Ptr(
         new pcl::VoxelGrid<pcl::PointXYZ>);
+    _filtered_xyz_map = pcl::PointCloud<pcl::PointXYZ>::Ptr(
+        new pcl::PointCloud<pcl::PointXYZ>);
+    
     _voxel_map->setLeafSize(
         _resolution, _resolution, _resolution);
 
@@ -39,19 +40,20 @@ sliding_map::slidingMap::slidingMap()
 {
     _voxel_map = pcl::VoxelGrid<pcl::PointXYZ>::Ptr(
         new pcl::VoxelGrid<pcl::PointXYZ>);
+    _filtered_xyz_map = pcl::PointCloud<pcl::PointXYZ>::Ptr(
+        new pcl::PointCloud<pcl::PointXYZ>);
 
     _module_start_time = std::chrono::system_clock::now();
 }
 
 void sliding_map::slidingMap::set_parameters(
     float resolution, Eigen::Vector3d map_size, 
-    double time_sync_threshold, size_t queue_size)
+    size_t queue_size)
 {
     _resolution = resolution;
     _voxel_map->setLeafSize(
         _resolution, _resolution, _resolution);
     _map_size = map_size;
-    _time_sync_threshold = time_sync_threshold;
     _queue_size = queue_size;
 
     _parameters_set = true;

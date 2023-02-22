@@ -44,11 +44,11 @@ namespace sliding_map
         public:
 
             slidingMap();
-            slidingMap(float resolution, Eigen::Vector3d map_size, 
-                double time_sync_threshold, size_t queue_size);
+            slidingMap(float resolution, 
+                Eigen::Vector3d map_size, size_t queue_size);
 
-            void set_parameters(float resolution, Eigen::Vector3d map_size, 
-                double time_sync_threshold, size_t queue_size);
+            void set_parameters(float resolution, 
+                Eigen::Vector3d map_size, size_t queue_size);
 
             void add_input_cloud(t_p_sc time,
                 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
@@ -78,8 +78,6 @@ namespace sliding_map
             size_t _queue_size;
 
             float _resolution;
-
-            double _time_sync_threshold;
 
             Eigen::Vector3d _map_size;
 
