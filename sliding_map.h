@@ -23,12 +23,17 @@
 #include <math.h>
 #include <map>
 #include <mutex>
+#include <queue>
 #include <Eigen/Dense>
 #include <chrono>
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+
+#include <pcl/common/io.h>
+
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/crop_box.h>
 
 typedef std::chrono::time_point<std::chrono::system_clock> t_p_sc;
 
@@ -38,7 +43,12 @@ namespace sliding_map
     {
         public:
 
-            slidingMap(float resolution, Eigen::Vector3d map_size, size_t queue_size = 1);
+            slidingMap();
+            slidingMap(float resolution, Eigen::Vector3d map_size, 
+                double time_sync_threshold, size_t queue_size);
+
+            void set_parameters(float resolution, Eigen::Vector3d map_size, 
+                double time_sync_threshold, size_t queue_size);
 
             void add_input_cloud(t_p_sc time,
                 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
@@ -48,12 +58,20 @@ namespace sliding_map
 
             void update_sliding_map();
 
+            pcl::PointCloud<pcl::PointXYZ>::Ptr get_sliding_map();
+
             ~slidingMap()
             {
-                _cloud_map.clear();
+                while (!_cloud_queue.empty())
+                    _cloud_queue.pop();
             }
         
         private:
+
+            std::mutex pose_mutex;
+            std::mutex cloud_mutex;
+
+            bool _parameters_set = false;
 
             t_p_sc _module_start_time;
 
@@ -61,21 +79,22 @@ namespace sliding_map
 
             float _resolution;
 
+            double _time_sync_threshold;
+
             Eigen::Vector3d _map_size;
 
             pcl::VoxelGrid<pcl::PointXYZ>::Ptr _voxel_map;
 
-            std::queue<double, Eigen::Affine3d> _transform;
+            pcl::PointCloud<pcl::PointXYZ>::Ptr _filtered_xyz_map;
+
+            std::pair<double, Eigen::Affine3d> _transform_stamped;
 
             /**
              * @brief 
-             * 1st pair: (bool) validator (whether this cloud time stamp has a time sync)
-             *           (double) relative time from start of module
-             * 2nd pair: (pcl) pointcloud pointer
-             *           (transform) transform that correspond to the pointcloud
+             * 1st: (double) relative time from start of module
+             * 2nd: (pcl) pointcloud pointer
              */
-            std::map<std::pair<bool, double>, 
-                std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, Eigen::Affine3d>> _cloud_map;
+            std::queue<std::pair<double, pcl::PointCloud<pcl::PointXYZ>::Ptr>> _cloud_queue;
 
     };
 }

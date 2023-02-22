@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BUILD_SHARED_LIBS ON)
 
 find_package(Eigen3 REQUIRED)
-find_package(PCL REQUIRED COMPONENTS common octree filters)
+find_package(PCL REQUIRED COMPONENTS common filters)
 
 add_library(${PROJECT_NAME}
     sliding_map.cpp
